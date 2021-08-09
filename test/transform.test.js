@@ -64,16 +64,36 @@ describe('transform', () => {
     strictEqual(result[0].equals(rdf.quad(ns.ex('subject/1234'), ns.ex.value, rdf.literal('1234'))), true)
   })
 
+  it('should transform the given XML stream according to the given raw mapping stream', async () => {
+    const input = createReadStream(simpleXmlFile)
+    const stream = transform({ mappingRaw: createReadStream(simpleMappingFile), serviceUrl })
+
+    input.pipe(stream)
+    const result = await getStream.array(stream)
+
+    strictEqual(result.length, 1)
+    strictEqual(result[0].equals(rdf.quad(ns.ex('subject/1234'), ns.ex.value, rdf.literal('1234'))), true)
+  })
+
+  it('should throw an error if mapping and raw mapping is given', async () => {
+    throws(() => {
+      transform({ mapping: readMapping(), mappingRaw: createReadStream(simpleMappingFile), serviceUrl })
+    })
+  })
+
   it('should handle transform errors', async () => {
     const input = createReadStream(simpleXmlFile)
-    const stream = transform({ mapping: Readable.from([]), serviceUrl })
+    const mapping = Readable.from([
+      rdf.quad(rdf.namedNode(''), rdf.namedNode(''), rdf.namedNode(''))
+    ])
+    const stream = transform({ mapping, serviceUrl })
 
     input.pipe(stream)
 
     await rejects(async () => {
       await getStream.array(stream)
     }, err => {
-      strictEqual(err.message.includes('500'), true)
+      strictEqual(err.message.includes('400'), true)
 
       return true
     })
