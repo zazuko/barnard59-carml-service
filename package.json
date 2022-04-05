@@ -1,6 +1,6 @@
 {
   "name": "barnard59-carml-service",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Carml mapping service support for Barnard59 Linked Data pipelines",
   "main": "transform.js",
   "scripts": {
